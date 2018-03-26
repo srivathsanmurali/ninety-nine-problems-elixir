@@ -1,4 +1,5 @@
 defmodule NinetyNineProblems do
+  require Logger
   @moduledoc """
   http://www.ic.unicamp.br/%7Emeidanis/courses/mc336/2009s2/prolog/problemas/
   """
@@ -160,8 +161,8 @@ defmodule NinetyNineProblems do
 
   @doc "problem_20: remove a spefic index"
   def remove(list, remove_index) do
-    {prefix, [_head_suffix | tail_suffix]} = split(list, remove_index - 1)
-    prefix ++ tail_suffix
+    {prefix, [head_suffix | tail_suffix]} = split(list, remove_index - 1)
+    {prefix ++ tail_suffix, head_suffix}
   end
 
   @doc "problem_21: insert at a given index"
@@ -174,6 +175,40 @@ defmodule NinetyNineProblems do
   def range(start_value, end_value) when end_value < start_value, do: []
   def range(start_value, end_value), do: [start_value] ++ range(start_value + 1, end_value)
 
-  # @doc "problem_23: Extract a given number of randomly selected elements from a list."
+  # @doc "problem_23_24: Extract a given number of randomly selected elements from a list."
+  def random_select(end_range, number_of_random_elements)
+      when not is_list(end_range),
+      do: range(1, end_range) |> random_select(number_of_random_elements)
 
+  def random_select(_list, 0), do: []
+  def random_select([], _number_of_random_elements), do: []
+
+  def random_select(list, number_of_random_elements) do
+    {rest_list, removed_item} =
+      list
+      |> length_list()
+      |> :rand.uniform()
+      |> (&remove(list, &1)).()
+
+    [removed_item] ++ random_select(rest_list, number_of_random_elements - 1)
+  end
+
+  @doc "problem_25: permutate a list"
+  def permutate(list), do: random_select(list, length_list(list))
+
+  @doc "problem_26: combinations"
+  def combination([], _size_of_combinations), do: []
+  def combination(_list, 0), do: []
+  def combination(list, size_of_combinations) do
+    list
+    |> Enum.map(fn x -> 
+        list -- [x]
+        |> combination(size_of_combinations - 1)
+        |> add_to_lists(x)
+       end)
+    |> Enum.reduce([], fn x -> for y <- x, do: y end)
+  end
+
+  defp add_to_lists([], elem), do: [elem]
+  defp add_to_lists(lists, elem), do: Enum.map(lists, fn list -> list ++ [elem] end)
 end
